@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curriculum Connect</title>
+  {% load static %}
+  <style>
+    body {
+      background-image: url('{% static "bg.jpg" %}');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    input, select {
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    button#submitBtn {
+      background-color: #ff6849;
+    }
+    button#refreshBtn {
+      background-color: #4c5667;
+    }
+    #outputArea {
+      margin-top: 20px;
+      text-align: left;
+      background-color: #f4f4f4;
+      padding: 10px;
+      border-radius: 5px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .logo {
+      width: 180px;
+      height: auto;
+      margin-bottom: 10px;
+    }
+    table {
+  border-collapse: collapse;
+  width: 100%; /* Adjust width as needed */
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+#mobile{
+        display: none;
+      }
+    .loader {
+      border: 2px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 2px solid blue;
+      border-bottom: 2px solid blue;
+      width: 15px;
+      height: 15px;
+      animation: spin .5s linear infinite;
+      display: none;
+      margin: 10px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @media only screen and (max-width: 600px) {
+        #laptop{
+            display: none;
+        }
+      #mobile{
+        display: block;
+      }
+
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container" id="laptop">
+    <img src="{% static 'logo.png' %}" alt="Logo" class="logo">
+    <h1 id="head">Curriculum Connect</h1>
+    <form method="post" action="{% url 'course_search' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="number" id="cluster_points" name="cluster_points" placeholder="Enter GPA / Cluster" required>
+      <select name="program_count"  >
+        <option value="5">5 programs</option>
+        <option value="10">10 programs</option>
+        <option value="15">15 programs</option>
+        <option value="20">20 programs</option>
+      </select>
+      <select name="field_of_study" id="field_of_study" >
+        <option value="">All fields</option>
+        <option value="engineering">Engineering</option>
+        <option value="medicine">Medicine</option>
+        <option value="campus">Campus programs</option>
+      </select>
+      <select name="institution_name" id="institution_name" >
+        <option value="">All institutions</option>
+        <option value="EGERTON UNIVERSITY">EGERTON UNIVERSITY</option>
+        <option value="KISII UNIVERSITY">KISII UNIVERSITY</option>
+        <option value="PWANI UNIVERSITY">PWANI UNIVERSITY</option>
+        <option value="JOMO KENYATTA UNIVERSITY OF AGRICULTURE AND TECHNOLOGY">JOMO KENYATTA UNIVERSITY OF AGRICULTURE AND TECHNOLOGY</option>
+        <option value="TECHNICAL UNIVERSITY OF MOMBASA">TECHNICAL UNIVERSITY OF MOMBASA</option>
+        <option value="KENYATTA UNIVERSITY">KENYATTA UNIVERSITY</option>
+        <option value="TECHNICAL UNIVERSITY OF KENYA">TECHNICAL UNIVERSITY OF KENYA</option>
+        <option value="MACHAKOS UNIVERSITY">MACHAKOS UNIVERSITY</option>
+        <option value="DEDAN KIMATHI UNIVERSITY OF TECHNOLOGY">DEDAN KIMATHI UNIVERSITY OF TECHNOLOGY</option>
+        <option value="UNIVERSITY OF NAIROBI">UNIVERSITY OF NAIROBI</option>
+        <option value="MULTIMEDIA UNIVERSITY OF KENYA">MULTIMEDIA UNIVERSITY OF KENYA</option>
+      </select>
+
+      <button  type="submit" id="submitBtn"style="background-color: #ff6849;">Search</button>
+ 
+      <button type="button" id="refreshBtn" onclick="window.location.reload();" style="background-color: #4c5667; ">Refresh</button>
+    </form>
+    <div id="outputArea">
+      <div class="loader" id="loader">
+       </div>
+      <p id="magic" style="display: none;">AI doing magic...</p>
+      {% if results %}
+      <script>
+        const magic = document.getElementById('magic');
+        magic.style.display ='none'
+      </script>
+        <table>
+          <thead>
+            <tr>
+              <th>Program Code</th>
+              <th>Program Name</th>
+              <th>Institution Name</th>
+              <th>Points Required</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for result in results %}
+              <tr>
+                <td>{{ result.progcode }}</td>
+                <td>{{ result.program_name }}</td>
+                <td>{{ result.institution_name }}</td>
+                <td>{{ result.points_required }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+ 
+      {% endif %}
+    </div>
+</div>
+<div class="container" id="mobile">
+    <h4>
+        System not available on mobile devices, Use your computer
+    </h4>
+    <p style="color: red;">
+        System under Maintainance
+    </p>
+</div>
+ 
+  <script>
+   
+    const submitBtn = document.getElementById('submitBtn');
+  
+    const refreshBtn = document.getElementById('refreshBtn');
+   
+  
+
+    submitBtn.addEventListener('click', async () => {
+
+      submitBtn.style.display = 'none';
+      var loader = document.getElementById('loader');
+      loader.style.display = 'block';
+      magic.style.display='block'
+      setTimeout(function() {
+        loader.style.display = 'none';
+        
+      }, 12000); 
+
+
+      refreshBtn.addEventListener('click', async () => {
+        location.reload();
+      });
+
+
+      
+     
+    });
+  </script>
+</body>
+</html>
